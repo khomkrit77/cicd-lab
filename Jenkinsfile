@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'khomkrit77'
+        DOCKER_HUB_USER = 'romeokiller'
         IMAGE_NAME = "cicd-lab"
         REGISTRY_IMAGE = "${DOCKER_HUB_USER}/${IMAGE_NAME}"
         CONTAINER_NAME = "cicd-container"
