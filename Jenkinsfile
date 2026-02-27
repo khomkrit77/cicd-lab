@@ -19,10 +19,12 @@ pipeline {
             steps {
                 script {
                     def deployDate = sh(script: "date '+%Y-%m-%d %H:%M:%S'", returnStdout: true).trim()
-                    
+                    def commitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    echo "Deploying Commit: ${commitMsg}"
                     // ใช้ sed ค้นหาคำใน index.html แล้วเปลี่ยนเป็นค่าจริงจาก Jenkins
                     sh "sed -i 's/BUILD_NUMBER_PLACEHOLDER/${BUILD_NUMBER}/g' index.html"
                     sh "sed -i 's/DEPLOY_DATE_PLACEHOLDER/${deployDate}/g' index.html"
+                    sh "sed -i \"s|COMMIT_MESSAGE_PLACEHOLDER|${commitMsg}|g\" index.html"
                 }
             }
         }  
