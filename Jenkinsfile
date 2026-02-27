@@ -14,6 +14,18 @@ pipeline {
                 checkout scm
             }
         }
+        
+        stage('Prepare Versioning') {
+            steps {
+                script {
+                    def deployDate = sh(script: "date '+%Y-%m-%d %H:%M:%S'", returnStdout: true).trim()
+                    
+                    // ใช้ sed ค้นหาคำใน index.html แล้วเปลี่ยนเป็นค่าจริงจาก Jenkins
+                    sh "sed -i 's/BUILD_NUMBER_PLACEHOLDER/${BUILD_NUMBER}/g' index.html"
+                    sh "sed -i 's/DEPLOY_DATE_PLACEHOLDER/${deployDate}/g' index.html"
+                }
+            }
+        }  
 
         stage('Build and Push') {
             steps {
