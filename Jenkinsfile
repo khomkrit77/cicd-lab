@@ -15,45 +15,36 @@ pipeline {
             }
         }
 
-        stage('Build & Tag Image') {
+        stage('Build and Push') {
             steps {
-                sh "docker build -t ${REGISTRY_IMAGE}:latest ."
-                sh "docker tag ${REGISTRY_IMAGE}:latest ${REGISTRY_IMAGE}:${BUILD_NUMBER}"
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials',
-                                 passwordVariable: 'DOCKER_HUB_PASSWORD',
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', 
+                                 passwordVariable: 'DOCKER_HUB_PASSWORD', 
                                  usernameVariable: 'DOCKER_HUB_USERNAME')]) {
+                    
+                    // ต้อง Login ก่อนถึงจะเริ่ม Build ได้เพื่อเลี่ยงปัญหา 401
                     sh "echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USERNAME --password-stdin"
+                    
+                    sh "docker build -t ${REGISTRY_IMAGE}:latest ."
+                    sh "docker tag ${REGISTRY_IMAGE}:latest ${REGISTRY_IMAGE}:${BUILD_NUMBER}"
+                    
                     sh "docker push ${REGISTRY_IMAGE}:latest"
                     sh "docker push ${REGISTRY_IMAGE}:${BUILD_NUMBER}"
                 }
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Deploy') {
             steps {
                 sh "docker stop ${CONTAINER_NAME} || true"
                 sh "docker rm ${CONTAINER_NAME} || true"
-            }
-        }
-
-        stage('Deploy New Container') {
-            steps {
                 sh "docker run -d -p 80:80 --name ${CONTAINER_NAME} ${REGISTRY_IMAGE}:latest"
             }
         }
     }
 
     post {
-        success {
-            echo 'Deployment & Push Successful'
-        }
-        failure {
-            echo 'Deployment Failed'
+        always {
+            sh "docker logout"
         }
     }
 }
