@@ -1,5 +1,7 @@
 FROM nginx:alpine
 
+# สั่งอัปเดต package ในเครื่องให้เป็นเวอร์ชันใหม่ล่าสุดเพื่อปิดช่องโหว่
+RUN apk update && apk upgrade
 # Remove default nginx page
 RUN rm -rf /usr/share/nginx/html/*
 
