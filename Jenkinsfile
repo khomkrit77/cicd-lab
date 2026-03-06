@@ -44,7 +44,10 @@ pipeline {
             when { expression { params.ROLLBACK_VERSION == '' } }
             steps {
                 script {
-                    sh "trivy image --severity HIGH,CRITICAL --exit-code 1 ${REGISTRY_IMAGE}:latest"
+                    echo "🛡️ กำลังสแกนหาช่องโหว่ผ่าน Docker Container..."
+                    // ใช้ docker run เพื่อเรียก trivy image มาสแกน
+                    // ต้อง mount docker.sock เพื่อให้ trivy มองเห็น image ที่เพิ่ง build ใน host
+                    sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --exit-code 1 ${REGISTRY_IMAGE}:latest"
                 }
             }
         }
@@ -68,6 +71,8 @@ pipeline {
             steps {
                 script {
                     def targetTag = params.ROLLBACK_VERSION ?: "latest"
+                    echo "🚀 กำลัง Deploy Version: ${targetTag}"
+
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
                     sh "docker run -d -p 80:80 --name ${CONTAINER_NAME} ${REGISTRY_IMAGE}:${targetTag}"
@@ -78,6 +83,7 @@ pipeline {
 
     post {
         always {
+            // ป้องกัน error ถ้าไม่ได้ login
             sh "docker logout || true"
         }
     }
