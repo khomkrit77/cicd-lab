@@ -75,7 +75,7 @@ pipeline {
 
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
-                    sh "docker run -d -p 80:80 --name ${CONTAINER_NAME} ${REGISTRY_IMAGE}:${targetTag}"
+                    sh "docker run -d -p 8082:80 --name ${CONTAINER_NAME} ${REGISTRY_IMAGE}:${targetTag}"
                 }
             }
         }
